@@ -404,13 +404,13 @@ const Content = () => {
                     {
                         editState.circleState.map((i, index)=>{
                             if(i==true){
-                                return <SvgCircle key={index} cx={(index%4)*25+12.5+"%"} cy={Math.floor((index/4))*14+10+"%"} r={"4%"} color={"black"}></SvgCircle>
+                                return <SvgCircle key={index} cx={(index%4)*25+12.5+"%"} cy={Math.floor((index/4))*14+10+"%"} r={"4.3%"} color={"black"}></SvgCircle>
                             }return null
                         })
                     }
                     {
                         Object.keys(editState.longCoord).map((i,index)=>{
-                            return <Rect key={index} x={(i%4)*25+12.5-3.5+"%"} y={Math.floor((i/4))*14+10-7+"%"} width={"7%"} height={14*editState.longCoord[i]+"%"}rx={"7%"} ry={"7%"} color={"black"}></Rect>
+                            return <Rect key={index} x={(i%4)*25+12.5-3.5+"%"} y={Math.floor((i/4))*14+10-6+"%"} width={"7%"} height={13*editState.longCoord[i]+"%"}rx={"7%"} ry={"7%"} color={"black"}></Rect>
                         })
                     }
                     <Text x={"11%"} y={"97%"} fontSize={"2rem"}>{editState.num}</Text>
