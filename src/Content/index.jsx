@@ -1,11 +1,39 @@
-import React,{useState, useEffect, createRef, useCallback} from "react"
+import React,{useState, useEffect, createRef} from "react"
 import styled from "styled-components"
 import { InputNumber, Button, Input} from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import {saveSvgAsPng} from "save-svg-as-png"
 
+const Header = styled.div`
+  width : 100%;
+  height : 6rem;
+  display : flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow : 4px 4px 2px grey;
+`
+
+const Logo = styled.span`
+  font-weight: bold;
+  font-size : 2.5rem;
+  color : black;
+`
+
+const Container = styled.div`
+  width : 50%;
+  display : flex;
+  align-items: center;
+  flex-direction: column;
+  margin : 0 auto;
+  margin-top: 2rem;
+  @media(max-width: 1500px){ width : 65%; }
+  @media(max-width: 1300px){ width : 80%; }
+  @media(max-width: 768px){ width : 95%; }
+  
+`
+
 const EditorWrapper = styled.div`
-  width : 40%;
+  width : 100%;
   height : auto;
   padding : 2rem;
   border : 3px solid black;
@@ -48,8 +76,7 @@ const EditorTouchArea = styled.div`
   display : grid;
   position : absolute;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(6, 40px);
-  gap : 4px;
+  grid-template-rows: repeat(6, 44px);
   top : -23.5px;
 `
 
@@ -72,51 +99,51 @@ const TouchCell = styled.div`
   display : flex;
   justify-content: center;
   align-items: center;
+  cursor : pointer;
   &:hover {
     background-color : rgba(0,0,0,0.3)
   }
 `
 
 const Circle = styled.div`
-  ${props=>props.view==true ? `display : block;` : `display : none;`}
-  height: 2.5rem;
-  width: 2.5rem;
+  ${props=>props.view===true ? `display : block;` : `display : none;`}
+  height: 36px;
+  width: 36px;
   border-radius: 22.125px;
   background-color : black;
 `
 
 const UpCircle = styled.div`
-  ${props=>props.view==true ? `display : block;` : `display : none;`}
-  height: 3rem;
-  width: 2.5rem;
+  ${props=>props.view===true ? `display : block;` : `display : none;`}
+  height: 100%;
+  width: 36px;
   border-top-left-radius: 22.125px;
   border-top-right-radius: 22.125px;
   background-color : black;
 `
 
 const DownCircle = styled.div`
-  ${props=>props.view==true ? `display : block;` : `display : none;`}
-  height: 3rem;
-  width: 2.5rem;
+  ${props=>props.view===true ? `display : block;` : `display : none;`}
+  height: 100%;
+  width: 36px;
   border-bottom-left-radius: 22.125px;
   border-bottom-right-radius: 22.125px;
   background-color : black;
 `
 
 const Rectangle = styled.div`
-  ${props=>props.view==true ? `display : block;` : `display : none;`}
-  height: 3rem;
-  width: 2.5rem;
+  ${props=>props.view===true ? `display : block;` : `display : none;`}
+  height: 100%;
+  width: 36px;
   background-color : black;
 `
 
 //result
 const ResultWrapper = styled.div`
-  width : 40%;
+  width : 100%;
   height : auto;
   padding : 2rem;
-  border : 3px solid black;
-  border-radius : 10px;
+  
   display : flex;
   justify-content: center;
   align-items: center;
@@ -128,7 +155,7 @@ const Result = styled.svg.attrs({ version: '1.1' , xmlns:"http://www.w3.org/2000
 `
 
 const Rect = styled.rect`
-
+  x : calc(${props=>props.x} - 20px)
 `
 
 const Line = styled.line`
@@ -142,6 +169,8 @@ const SvgCircle = styled.circle`
 const Text = styled.text`
 
 `
+
+// const TSpan = styled.tspan``
 
 const Content = () => {
 
@@ -157,7 +186,6 @@ const Content = () => {
     })
 
     const onNumChange = (e) => {
-        console.log(e)
         setEditState((state)=>{
             return {
                 ...state,
@@ -174,7 +202,6 @@ const Content = () => {
         saveSvgAsPng(svgRef.current, "GuitarSheet.png")
     }
     const onTitleChange = (e) => {
-        console.log(e.target.value)
         setEditState((state)=>{
             return {
                 ...state,
@@ -204,7 +231,6 @@ const Content = () => {
     }
 
     const onDragEnd = (e, index) => {
-        console.log("dragEnd : ", index)
         setEditState(state=>{
             const circleState = [...state.circleState]
             const longState = [...state.longState]
@@ -253,10 +279,10 @@ const Content = () => {
 
             if(state.dragStartIndex%4===index%4) { //같은 줄 인식
                 if (state.dragStartIndex > index) {//밑으로
-                    if (longState[state.dragStartIndex + 4] == 2) {
+                    if (longState[state.dragStartIndex + 4] === 2) {
                         longState[state.dragStartIndex + 4] = 0
                     }
-                    if (longState[index] == 3) {
+                    if (longState[index] === 3) {
                         longState[index - 4] = 0
                         longState[index] = 1
                     } else {
@@ -265,10 +291,10 @@ const Content = () => {
                     }
 
                 } else if (state.dragStartIndex < index) {//위로
-                    if (longState[state.dragStartIndex - 4] == 1) {
+                    if (longState[state.dragStartIndex - 4] === 1) {
                         longState[state.dragStartIndex - 4] = 0
                     }
-                    if (longState[index] == 3) {
+                    if (longState[index] === 3) {
                         longState[index + 4] = 0
                         longState[index] = 2
 
@@ -303,14 +329,12 @@ const Content = () => {
     const deleteLong = (index) => {
         for(let i=0;i<Object.keys(editState.longCoord).length;i++){
             const longIndex = Object.keys(editState.longCoord)[i] // Key값
-            if(index >= Number(longIndex) && index <=Number(longIndex) + (editState.longCoord[longIndex]-1)*4 && index%4 == Number(longIndex)%4){//존재
-                console.log(index,longIndex, Number(longIndex) + editState.longCoord[longIndex]*4)
+            if(index >= Number(longIndex) && index <=Number(longIndex) + (editState.longCoord[longIndex]-1)*4 && index%4 === Number(longIndex)%4){//존재
                 setEditState(state=>{
                     const longState = [...state.longState]
                     const longCoord = {...state.longCoord}
 
                     for(let j=0;j<longCoord[longIndex];j++){
-                        console.log("지움 ",Number(longIndex)+4*j)
                         longState[Number(longIndex)+4*j] = 0
                     }
                     delete longCoord[longIndex] //value
@@ -326,101 +350,133 @@ const Content = () => {
             }
         }
     }
+    //잠시 보류
+    // const filterCode = (code) => {
+    //     let answer = ""
+    //     let index=0
+    //     let upOn = false
+    //     let upContent = ""
+    //     let result = code.replace(/{/gi,"<TSpan dy=-10 fontSize='1rem'>")
+    //     result = result.replace(/\[/gi,"<TSpan dy=+10 fontSize='1rem'>")
+    //     result = result.replace(/\}/gi,"</TSpan>")
+    //     result = result.replace(/\]/gi,"</TSpan>")
+    //     for(let i=0;i<result.length;i++){
+    //         if(result.charAt(i)==='['){
+    //             index = i
+    //             upOn = true
+    //         }else if(result.charAt(i)===']'){
+    //             answer += result.substring(index, i+1)
+    //             answer += <TSpan dy={"-10"} fontSize={"1rem"}>content</TSpan>
+    //         }else if(upOn){
+    //             upContent += result.charAt(i)
+    //         }
+    //         else{
+    //             answer += result.charAt(i)
+    //         }
+    //     }
+    //     return <Text x={"0%"} y={"7%"} fontSize={"2rem"} fontWeight={"bold"}>{result}</Text>
+    // }
 
     useEffect(()=>{
-        console.log(editState.longCoord)
     }, [editState])
 
     return (
         <>
-            <EditorWrapper>
-                <TitleArea>
-                    <Input placeholder="Code" onChange={onTitleChange}/>
-                </TitleArea>
-                <Editor num={editState.num}>
-                    {
-                        new Array(20).fill(0).map((i, index)=>{
-                            return <Cell key={index}></Cell>
-                        })
-                    }
-                    <EditorTouchArea>
+            <Header>
+                <Logo>GuitarSheet</Logo>
+            </Header>
+            <Container>
+                <EditorWrapper>
+                    <TitleArea>
+                        <Input placeholder="Code" onChange={onTitleChange}/>
+                    </TitleArea>
+                    <Editor num={editState.num}>
                         {
-                            new Array(24).fill(0).map((i, index)=>{
-                                return <TouchCell key={index} onDragStart={(e)=>onDragStart(e, index)} onDragEnter={(e)=>onDragEnter(e, index)} onDragEnd={(e)=>onDragEnd(e, index)}onClick={(e)=>{
-                                    setEditState((state)=>{
-                                        const circleState = [...state.circleState]
-                                        circleState[index] = (circleState[index]) ? false : true
-                                        deleteLong(index)
-                                        return {
-                                            ...state,
-                                            circleState : circleState,
-                                            longState : [...state.longState],
-                                            longCoord : {...state.longCoord},
-                                        }
-                                    })
-                                }
-                                }
-                                >
-                                    <Circle key={index} view={editState.circleState[index]}></Circle>
-                                    <UpCircle key={24+index} view={editState.longState[index]===1}></UpCircle>
-                                    <DownCircle key={48+index} view={editState.longState[index]===2}></DownCircle>
-                                    <Rectangle key={72+index} view={editState.longState[index]===3}></Rectangle>
-
-                                </TouchCell>
+                            new Array(20).fill(0).map((i, index)=>{
+                                return <Cell key={index}></Cell>
                             })
                         }
-                    </EditorTouchArea>
+                        <EditorTouchArea>
+                            {
+                                new Array(24).fill(0).map((i, index)=>{
+                                    return <TouchCell key={index} onDragStart={(e)=>onDragStart(e, index)} onDragEnter={(e)=>onDragEnter(e, index)} onDragEnd={(e)=>onDragEnd(e, index)}onClick={(e)=>{
+                                        setEditState((state)=>{
+                                            const circleState = [...state.circleState]
+                                            circleState[index] = (circleState[index]) ? false : true
+                                            deleteLong(index)
+                                            return {
+                                                ...state,
+                                                circleState : circleState,
+                                                longState : [...state.longState],
+                                                longCoord : {...state.longCoord},
+                                            }
+                                        })
+                                    }
+                                    }
+                                    >
+                                        <Circle key={index} view={editState.circleState[index]}></Circle>
+                                        <UpCircle key={24+index} view={editState.longState[index]===1}></UpCircle>
+                                        <DownCircle key={48+index} view={editState.longState[index]===2}></DownCircle>
+                                        <Rectangle key={72+index} view={editState.longState[index]===3}></Rectangle>
 
-                </Editor>
-                <EditorNumArea>
-                    <InputNumber size="large" min={1} max={17} defaultValue={1} onChange={onNumChange} />
-                    <InputNumber size="large" min={1} max={17} value={editState?.num+1} disabled={true}/>
-                    <InputNumber size="large" min={1} max={17} value={editState?.num+2} disabled={true}/>
-                    <InputNumber size="large" min={1} max={17} value={editState?.num+3} disabled={true}/>
-                </EditorNumArea>
-                <EditorButtonArea>
-                    <Button icon={<DownloadOutlined />} size={"large"} onClick={onDownloadClick}>
-                        Download
-                    </Button>
-                </EditorButtonArea>
-            </EditorWrapper>
-            <ResultWrapper>
-                <Result ref={svgRef}>
-                    {
-                        editState.num===1 ? <Line x1={"0"} y1={"10%"} x2={"0"} y2={"80%"} stroke={"black"} strokeWidth={"25"}></Line> : <Line x1={"0"} y1={"10%"} x2={"0"} y2={"80%"} stroke={"black"} strokeWidth={"6"}></Line>
-                    }
+                                    </TouchCell>
+                                })
+                            }
+                        </EditorTouchArea>
 
-                    <Line x1={"25%"} y1={"10%"} x2={"25%"} y2={"80%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"50%"} y1={"10%"} x2={"50%"} y2={"80%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"75%"} y1={"10%"} x2={"75%"} y2={"80%"} stroke={"black"} strokeWidth={"3"}></Line>
+                    </Editor>
+                    <EditorNumArea>
+                        <InputNumber size="large" min={1} max={17} defaultValue={1} onChange={onNumChange} />
+                        <InputNumber size="large" min={1} max={17} value={editState?.num+1} disabled={true}/>
+                        <InputNumber size="large" min={1} max={17} value={editState?.num+2} disabled={true}/>
+                        <InputNumber size="large" min={1} max={17} value={editState?.num+3} disabled={true}/>
+                    </EditorNumArea>
+                    <EditorButtonArea>
+                        <Button icon={<DownloadOutlined />} size={"large"} onClick={onDownloadClick}>
+                            Download
+                        </Button>
+                    </EditorButtonArea>
+                </EditorWrapper>
+                <ResultWrapper>
+                    <Result ref={svgRef}>
+                        {
+                            editState.num===1 ? <Line x1={"0"} y1={"15%"} x2={"0"} y2={"85%"} stroke={"black"} strokeWidth={"25"}></Line> : <Line x1={"0"} y1={"15%"} x2={"0"} y2={"85%"} stroke={"black"} strokeWidth={"6"}></Line>
+                        }
+
+                        <Line x1={"25%"} y1={"15%"} x2={"25%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"50%"} y1={"15%"} x2={"50%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"75%"} y1={"15%"} x2={"75%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
 
 
-                    <Line x1={"0"} y1={"10%"} x2={"100%"} y2={"10%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"0"} y1={"24%"} x2={"100%"} y2={"24%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"0"} y1={"38%"} x2={"100%"} y2={"38%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"0"} y1={"52%"} x2={"100%"} y2={"52%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"0"} y1={"66%"} x2={"100%"} y2={"66%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    <Line x1={"0"} y1={"80%"} x2={"100%"} y2={"80%"} stroke={"black"} strokeWidth={"3"}></Line>
-                    {
-                        editState.circleState.map((i, index)=>{
-                            if(i==true){
-                                return <SvgCircle key={index} cx={(index%4)*25+12.5+"%"} cy={Math.floor((index/4))*14+10+"%"} r={"4.3%"} color={"black"}></SvgCircle>
-                            }return null
-                        })
-                    }
-                    {
-                        Object.keys(editState.longCoord).map((i,index)=>{
-                            return <Rect key={index} x={(i%4)*25+12.5-3.5+"%"} y={Math.floor((i/4))*14+10-6+"%"} width={"7%"} height={13*editState.longCoord[i]+"%"}rx={"7%"} ry={"7%"} color={"black"}></Rect>
-                        })
-                    }
-                    <Text x={"11%"} y={"97%"} fontSize={"2rem"}>{editState.num}</Text>
-                    <Text x={"36%"} y={"97%"} fontSize={"2rem"}>{editState.num+1}</Text>
-                    <Text x={"61%"} y={"97%"} fontSize={"2rem"}>{editState.num+2}</Text>
-                    <Text x={"86%"} y={"97%"} fontSize={"2rem"}>{editState.num+3}</Text>
-                    //코드명
-                    <Text x={"0%"} y={"6%"} fontSize={"1.5rem"} fontWeight={"bold"}>{editState.code}</Text>
-                </Result>
-            </ResultWrapper>
+                        <Line x1={"0"} y1={"15%"} x2={"100%"} y2={"15%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"0"} y1={"29%"} x2={"100%"} y2={"29%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"0"} y1={"43%"} x2={"100%"} y2={"43%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"0"} y1={"57%"} x2={"100%"} y2={"57%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"0"} y1={"71%"} x2={"100%"} y2={"71%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"0"} y1={"85%"} x2={"100%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        {
+                            editState.circleState.map((i, index)=>{
+                                if(i===true){
+                                    return <SvgCircle key={index} cx={(index%4)*25+12.5+"%"} cy={Math.floor((index/4))*14+15+"%"} r={"20px"} color={"black"}></SvgCircle>
+                                }return null
+                            })
+                        }
+                        {
+                            Object.keys(editState.longCoord).map((i,index)=>{
+                                return <Rect key={index} x={(i%4)*25+12.5+"%"} y={Math.floor((i/4))*14+15-7+"%"} width={"40px"} height={14*editState.longCoord[i]+"%"}rx={"5%"} ry={"5%"} color={"black"}></Rect>
+                            })
+                        }
+                        <Text x={"11%"} y={"100%"} fontSize={"2rem"}>{editState.num}</Text>
+                        <Text x={"36.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+1}</Text>
+                        <Text x={"61.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+2}</Text>
+                        <Text x={"86.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+3}</Text>
+                        {
+                            editState.code
+                        }
+                    </Result>
+                </ResultWrapper>
+            </Container>
+
         </>
     )
 }
