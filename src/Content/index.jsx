@@ -470,9 +470,7 @@ const Content = () => {
                         <Text x={"36.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+1}</Text>
                         <Text x={"61.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+2}</Text>
                         <Text x={"86.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+3}</Text>
-                        {
-                            editState.code
-                        }
+                        <Text x={"0%"} y={"7%"} fontSize={"2rem"} fontWeight={"bold"}>{editState.code}</Text>
                     </Result>
                 </ResultWrapper>
             </Container>
