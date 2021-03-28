@@ -204,7 +204,8 @@ const Content = () => {
         code : "",
         num : 1,
         isDragging : false,
-        isEmpty : [true, true, true, true, true, true]
+        isEmpty : [true, true, true, true, true, true],
+        currentIndex : 0
     })
 
     const onNumChange = (e) => {
@@ -235,17 +236,30 @@ const Content = () => {
         })
     }
     const onDragStart = (e, index) => { //드래그 시작지점만 알면됨
+        e.preventDefault()
         setEditState(state=>{
             return {
                 ...state,
                 dragStartIndex : index,
-                isDragging : true
+                isDragging : true,
+                currentIndex : index
             }
         })
     }
 
     const onDragEnd = (e, index) => {
+
         setEditState(state=>{
+            if(index===editState.dragStartIndex){
+                const circleState = [...state.circleState]
+                circleState[index] = (circleState[index]===true) ? false : true
+                deleteLong(index)
+                return {
+                    ...state,
+                    circleState : [...circleState],
+                    isDragging : false
+                }
+            }
             const longState = [...state.longState]
             const longCoord = {...state.longCoord}
 
@@ -339,6 +353,7 @@ const Content = () => {
                     circleState : [...circleState],
                     longState : [...longState],
                     longCoord : {...state.longCoord},
+                    currentIndex : index
                 }
             })
         }
@@ -414,24 +429,12 @@ const Content = () => {
                             }
 
                         </CircleWrapper>
-                        <EditorTouchArea>
+                        <EditorTouchArea onMouseLeave={(e)=>onDragEnd(e, editState.currentIndex)}>
                             {
                                 new Array(24).fill(0).map((i, index)=>{
-                                    return <TouchCell key={index} onMouseDown={(e)=>onDragStart(e, index)} onMouseEnter={(e)=>onDragEnter(e, index)} onMouseUp={(e)=>onDragEnd(e, index)}onClick={(e)=>{
-                                        setEditState((state)=>{
-                                            const circleState = [...state.circleState]
-                                            circleState[index] = (circleState[index]===true) ? false : true
-                                            deleteLong(index)
-                                            return {
-                                                ...state,
-                                                circleState : circleState,
-                                                longState : [...state.longState],
-                                                longCoord : {...state.longCoord},
-                                            }
-                                        })
-                                    }
-                                    }
-                                    >
+                                    return <TouchCell key={index} onMouseDown={(e)=>onDragStart(e, index)} onMouseEnter={(e)=>onDragEnter(e, index)} onMouseUp={(e)=>onDragEnd(e, index)} onDragStart={()=>{
+                                        return false
+                                    }}>
                                         <Circle key={index} view={editState.circleState[index]}></Circle>
                                         <UpCircle key={24+index} view={editState.longState[index]===1}></UpCircle>
                                         <DownCircle key={48+index} view={editState.longState[index]===2}></DownCircle>
