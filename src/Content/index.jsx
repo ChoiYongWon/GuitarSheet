@@ -140,7 +140,7 @@ const Rectangle = styled.div`
 
 //result
 const ResultWrapper = styled.div`
-  width : 100%;
+  width : 80%;
   height : auto;
   padding : 2rem;
   
@@ -150,7 +150,7 @@ const ResultWrapper = styled.div`
 `
 
 const Result = styled.svg.attrs({ version: '1.1' , xmlns:"http://www.w3.org/2000/svg"})`
-  width : 82%;
+  width : 100%;
   min-height : 330px;
 `
 
@@ -170,6 +170,26 @@ const Text = styled.text`
 
 `
 
+
+const CircleWrapper = styled.div`
+  display : flex;
+  flex-direction: column;
+  height : 264px;
+  position : absolute;
+  top : -23.5px;
+  left : -70px;
+`
+
+const EmptyCircle = styled.div`
+  width : 40px;
+  height : 40px;
+  background-color : transparent;
+  border : solid 2px black;
+  border-radius: 100%;
+  margin : 2px 0;
+  ${(props=> props.transparant ? `opacity : 0;` : null)}
+`
+
 // const TSpan = styled.tspan``
 
 const Content = () => {
@@ -183,6 +203,8 @@ const Content = () => {
         dragStartIndex : null,
         code : "",
         num : 1,
+        isDragging : false,
+        isEmpty : [true, true, true, true, true, true]
     })
 
     const onNumChange = (e) => {
@@ -214,25 +236,16 @@ const Content = () => {
     }
     const onDragStart = (e, index) => { //드래그 시작지점만 알면됨
         setEditState(state=>{
-            const circleState = [...state.circleState]
-            const longState = [...state.longState]
-            if(circleState[index]===true){
-                circleState[index] = false
-            }
-
             return {
                 ...state,
-                circleState : [...circleState],
-                longState : [...longState],
-                longCoord : {...state.longCoord},
-                dragStartIndex : index
+                dragStartIndex : index,
+                isDragging : true
             }
         })
     }
 
     const onDragEnd = (e, index) => {
         setEditState(state=>{
-            const circleState = [...state.circleState]
             const longState = [...state.longState]
             const longCoord = {...state.longCoord}
 
@@ -260,71 +273,76 @@ const Content = () => {
 
             return {
                 ...state,
-                circleState : [...circleState],
                 longState : [...longState],
                 longCoord : {...longCoord},
+                isDragging : false
             }
         })
     }
 
 
     const onDragEnter = (e, index) => { //드래그하는 곳에따라 원 모양 배치
-        setEditState(state=>{
-            const circleState = [...state.circleState]
-            const longState = [...state.longState]
+        if(editState.isDragging){
+            setEditState(state=>{
+                const circleState = [...state.circleState]
+                const longState = [...state.longState]
+                if(circleState[state.dragStartIndex]===true){
+                    circleState[state.dragStartIndex] = false
+                }
+                if(circleState[index]===true){
+                    circleState[index] = false
+                }
 
-            if(circleState[index]===true){
-                circleState[index] = false
-            }
+                if(state.dragStartIndex%4===index%4) { //같은 줄 인식
+                    if (state.dragStartIndex > index) {//밑으로
+                        if (longState[state.dragStartIndex + 4] === 2) {
+                            longState[state.dragStartIndex + 4] = 0
+                        }
+                        if (longState[index] === 3) {
+                            longState[index - 4] = 0
+                            longState[index] = 1
+                        } else {
+                            longState[state.dragStartIndex] = 2
+                            longState[index] = 1
+                        }
 
-            if(state.dragStartIndex%4===index%4) { //같은 줄 인식
-                if (state.dragStartIndex > index) {//밑으로
-                    if (longState[state.dragStartIndex + 4] === 2) {
-                        longState[state.dragStartIndex + 4] = 0
+                    } else if (state.dragStartIndex < index) {//위로
+                        if (longState[state.dragStartIndex - 4] === 1) {
+                            longState[state.dragStartIndex - 4] = 0
+                        }
+                        if (longState[index] === 3) {
+                            longState[index + 4] = 0
+                            longState[index] = 2
+
+                        } else {
+                            longState[state.dragStartIndex] = 1
+                            longState[index] = 2
+                        }
+
                     }
-                    if (longState[index] === 3) {
-                        longState[index - 4] = 0
-                        longState[index] = 1
-                    } else {
-                        longState[state.dragStartIndex] = 2
-                        longState[index] = 1
-                    }
 
-                } else if (state.dragStartIndex < index) {//위로
-                    if (longState[state.dragStartIndex - 4] === 1) {
-                        longState[state.dragStartIndex - 4] = 0
-                    }
-                    if (longState[index] === 3) {
-                        longState[index + 4] = 0
-                        longState[index] = 2
 
-                    } else {
-                        longState[state.dragStartIndex] = 1
-                        longState[index] = 2
+                    for (let i = 1; i < Math.abs(Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)); i++) {
+                        if (index > state.dragStartIndex) {
+                            longState[state.dragStartIndex + 4 * i] = 3
+                        } else {
+                            longState[state.dragStartIndex - 4 * i] = 3
+                        }
                     }
-
                 }
 
 
-                for (let i = 1; i < Math.abs(Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)); i++) {
-                    if (index > state.dragStartIndex) {
-                        longState[state.dragStartIndex + 4 * i] = 3
-                    } else {
-                        longState[state.dragStartIndex - 4 * i] = 3
-                    }
+
+
+                return {
+                    ...state,
+                    circleState : [...circleState],
+                    longState : [...longState],
+                    longCoord : {...state.longCoord},
                 }
-            }
+            })
+        }
 
-
-
-
-            return {
-                ...state,
-                circleState : [...circleState],
-                longState : [...longState],
-                longCoord : {...state.longCoord},
-            }
-        })
     }
     const deleteLong = (index) => {
         for(let i=0;i<Object.keys(editState.longCoord).length;i++){
@@ -340,7 +358,6 @@ const Content = () => {
                     delete longCoord[longIndex] //value
                     return {
                         ...state,
-                        circleState : [...state.circleState],
                         longState : [...longState],
                         longCoord : {...longCoord},
                     }
@@ -350,35 +367,27 @@ const Content = () => {
             }
         }
     }
-    //잠시 보류
-    // const filterCode = (code) => {
-    //     let answer = ""
-    //     let index=0
-    //     let upOn = false
-    //     let upContent = ""
-    //     let result = code.replace(/{/gi,"<TSpan dy=-10 fontSize='1rem'>")
-    //     result = result.replace(/\[/gi,"<TSpan dy=+10 fontSize='1rem'>")
-    //     result = result.replace(/\}/gi,"</TSpan>")
-    //     result = result.replace(/\]/gi,"</TSpan>")
-    //     for(let i=0;i<result.length;i++){
-    //         if(result.charAt(i)==='['){
-    //             index = i
-    //             upOn = true
-    //         }else if(result.charAt(i)===']'){
-    //             answer += result.substring(index, i+1)
-    //             answer += <TSpan dy={"-10"} fontSize={"1rem"}>content</TSpan>
-    //         }else if(upOn){
-    //             upContent += result.charAt(i)
-    //         }
-    //         else{
-    //             answer += result.charAt(i)
-    //         }
-    //     }
-    //     return <Text x={"0%"} y={"7%"} fontSize={"2rem"} fontWeight={"bold"}>{result}</Text>
-    // }
+
 
     useEffect(()=>{
-    }, [editState])
+        console.log(editState.circleState)
+    }, [editState.circleState])
+
+
+    useEffect(()=>{
+        let isEmpty = [true, true, true, true, true, true]
+        for(let i=0;i<24;i++){
+            if(editState.circleState[i]===true || editState.longState[i]!==0){
+                isEmpty[Math.floor(i/4)] = false
+                setEditState((state)=>{
+                    return {
+                        ...state,
+                        isEmpty : [...isEmpty]
+                    }
+                })
+            }
+        }
+    }, [editState.circleState, editState.longState])
 
     return (
         <>
@@ -390,19 +399,28 @@ const Content = () => {
                     <TitleArea>
                         <Input placeholder="Code" onChange={onTitleChange}/>
                     </TitleArea>
+
                     <Editor num={editState.num}>
                         {
                             new Array(20).fill(0).map((i, index)=>{
                                 return <Cell key={index}></Cell>
                             })
                         }
+                        <CircleWrapper>
+                            {
+                                editState.isEmpty.map((i,index)=>{
+                                    return <EmptyCircle key={index} transparant={i===true ? false : true}/>
+                                })
+                            }
+
+                        </CircleWrapper>
                         <EditorTouchArea>
                             {
                                 new Array(24).fill(0).map((i, index)=>{
-                                    return <TouchCell key={index} onDragStart={(e)=>onDragStart(e, index)} onDragEnter={(e)=>onDragEnter(e, index)} onDragEnd={(e)=>onDragEnd(e, index)}onClick={(e)=>{
+                                    return <TouchCell key={index} onMouseDown={(e)=>onDragStart(e, index)} onMouseEnter={(e)=>onDragEnter(e, index)} onMouseUp={(e)=>onDragEnd(e, index)}onClick={(e)=>{
                                         setEditState((state)=>{
                                             const circleState = [...state.circleState]
-                                            circleState[index] = (circleState[index]) ? false : true
+                                            circleState[index] = (circleState[index]===true) ? false : true
                                             deleteLong(index)
                                             return {
                                                 ...state,
@@ -440,37 +458,49 @@ const Content = () => {
                 <ResultWrapper>
                     <Result ref={svgRef}>
                         {
-                            editState.num===1 ? <Line x1={"0"} y1={"15%"} x2={"0"} y2={"85%"} stroke={"black"} strokeWidth={"25"}></Line> : <Line x1={"0"} y1={"15%"} x2={"0"} y2={"85%"} stroke={"black"} strokeWidth={"6"}></Line>
+                            editState.isEmpty.map((i, index)=>{
+                                if(i===true){
+                                    return  <SvgCircle key={index} cx={"5%"} cy={Math.floor((index%6))*14+15+"%"} r={"20px"} stroke="black" strokeWidth="2" fill={"none"}></SvgCircle>
+                                }return null
+
+                            })
                         }
 
-                        <Line x1={"25%"} y1={"15%"} x2={"25%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"50%"} y1={"15%"} x2={"50%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"75%"} y1={"15%"} x2={"75%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+
+                        {
+                            editState.num===1 ? <Line x1={"10%"} y1={"14.5%"} x2={"10%"} y2={"85.5%"} stroke={"black"} strokeWidth={"15"}></Line> : <Line x1={"10%"} y1={"14.5%"} x2={"10%"} y2={"85.5%"} stroke={"black"} strokeWidth={"6"}></Line>
+                        }
+
+                        <Line x1={"32.5%"} y1 ={"15%"} x2={"32.5%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"56%"} y1={"15%"} x2={"56%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"78.5%"} y1={"15%"} x2={"78.5%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
 
 
-                        <Line x1={"0"} y1={"15%"} x2={"100%"} y2={"15%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"0"} y1={"29%"} x2={"100%"} y2={"29%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"0"} y1={"43%"} x2={"100%"} y2={"43%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"0"} y1={"57%"} x2={"100%"} y2={"57%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"0"} y1={"71%"} x2={"100%"} y2={"71%"} stroke={"black"} strokeWidth={"3"}></Line>
-                        <Line x1={"0"} y1={"85%"} x2={"100%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"10%"} y1={"15%"} x2={"100%"} y2={"15%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"10%"} y1={"29%"} x2={"100%"} y2={"29%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"10%"} y1={"43%"} x2={"100%"} y2={"43%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"10%"} y1={"57%"} x2={"100%"} y2={"57%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"10%"} y1={"71%"} x2={"100%"} y2={"71%"} stroke={"black"} strokeWidth={"3"}></Line>
+                        <Line x1={"10%"} y1={"85%"} x2={"100%"} y2={"85%"} stroke={"black"} strokeWidth={"3"}></Line>
                         {
                             editState.circleState.map((i, index)=>{
                                 if(i===true){
-                                    return <SvgCircle key={index} cx={(index%4)*25+12.5+"%"} cy={Math.floor((index/4))*14+15+"%"} r={"20px"} color={"black"}></SvgCircle>
+                                    return <SvgCircle key={index} cx={(index%4)*22.5+12.5+10+"%"} cy={Math.floor((index/4))*14+15+"%"} r={"20px"} color={"black"}></SvgCircle>
                                 }return null
                             })
                         }
                         {
                             Object.keys(editState.longCoord).map((i,index)=>{
-                                return <Rect key={index} x={(i%4)*25+12.5+"%"} y={Math.floor((i/4))*14+15-7+"%"} width={"40px"} height={14*editState.longCoord[i]+"%"}rx={"5%"} ry={"5%"} color={"black"}></Rect>
+                                return <Rect key={index} x={(i%4)*22.5+12.5+10+"%"} y={Math.floor((i/4))*14+15-7+"%"} width={"40px"} height={14*editState.longCoord[i]+"%"}rx={"5%"} ry={"5%"} color={"black"}></Rect>
                             })
                         }
-                        <Text x={"11%"} y={"100%"} fontSize={"2rem"}>{editState.num}</Text>
-                        <Text x={"36.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+1}</Text>
-                        <Text x={"61.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+2}</Text>
-                        <Text x={"86.5%"} y={"100%"} fontSize={"2rem"}>{editState.num+3}</Text>
-                        <Text x={"0%"} y={"7%"} fontSize={"2rem"} fontWeight={"bold"}>{editState.code}</Text>
+                        <Text x={"21.25%"} y={"100%"} fontSize={"2rem"}>{editState.num}</Text>
+                        <Text x={"43.75%"} y={"100%"} fontSize={"2rem"}>{editState.num+1}</Text>
+                        <Text x={"66.25%"} y={"100%"} fontSize={"2rem"}>{editState.num+2}</Text>
+                        <Text x={"88.75%"} y={"100%"} fontSize={"2rem"}>{editState.num+3}</Text>
+                        <Text x={"10%"} y={"7%"} fontSize={"2rem"} fontWeight={"bold"}>{editState.code}</Text>
+
+
                     </Result>
                 </ResultWrapper>
             </Container>
