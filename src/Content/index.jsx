@@ -3,6 +3,7 @@ import styled from "styled-components"
 import { InputNumber, Button, Input} from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import {saveSvgAsPng} from "save-svg-as-png"
+import {CloseOutlined} from "@ant-design/icons"
 
 const Header = styled.div`
   width : 100%;
@@ -140,18 +141,19 @@ const Rectangle = styled.div`
 
 //result
 const ResultWrapper = styled.div`
-  width : 80%;
+  width : 100%;
   height : auto;
   padding : 2rem;
-  
   display : flex;
   justify-content: center;
   align-items: center;
+
 `
 
 const Result = styled.svg.attrs({ version: '1.1' , xmlns:"http://www.w3.org/2000/svg"})`
-  width : 100%;
+  width : 80%;
   min-height : 330px;
+  
 `
 
 const Rect = styled.rect`
@@ -190,6 +192,10 @@ const EmptyCircle = styled.div`
   ${(props=> props.transparant ? `opacity : 0;` : null)}
 `
 
+const CancelButton = styled.div`
+  
+`
+
 // const TSpan = styled.tspan``
 
 const Content = () => {
@@ -205,6 +211,7 @@ const Content = () => {
         num : 1,
         isDragging : false,
         isEmpty : [true, true, true, true, true, true],
+        isXed : [false, false, false, false, false, false],
         currentIndex : 0
     })
 
@@ -237,6 +244,7 @@ const Content = () => {
     }
     const onDragStart = (e, index) => { //드래그 시작지점만 알면됨
         e.preventDefault()
+        deleteLong(index)
         setEditState(state=>{
             return {
                 ...state,
@@ -248,50 +256,52 @@ const Content = () => {
     }
 
     const onDragEnd = (e, index) => {
+        if(editState.isDragging){
+            setEditState(state=>{
+                let tempIndex = state.dragStartIndex + (Math.floor(state.dragStartIndex/4) < Math.floor(index/4) ? 1 : -1)*(Math.abs((Math.floor(index/4)- Math.floor(state.dragStartIndex/4)) * 4)) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                if(index===editState.dragStartIndex){
+                    const circleState = [...state.circleState]
+                    circleState[index] = (circleState[index]===true) ? false : true
+                    return {
+                        ...state,
+                        circleState : [...circleState],
+                        isDragging : false
+                    }
+                }
+                const longState = [...state.longState]
+                const longCoord = {...state.longCoord}
 
-        setEditState(state=>{
-            if(index===editState.dragStartIndex){
-                const circleState = [...state.circleState]
-                circleState[index] = (circleState[index]===true) ? false : true
-                deleteLong(index)
+                let n = 0
+                if(longState[tempIndex]===1){
+                    while(true){
+                        n += 1
+                        if(longState[tempIndex+4*n]===2){
+                            break
+                        }
+                    }
+                    longCoord[tempIndex] = n + 1
+                }else if(longState[tempIndex]===2){
+                    while(true){
+                        n += 1
+                        if(longState[tempIndex-4*n]===1){
+                            break
+                        }
+                    }
+                    longCoord[tempIndex-4*n] = n + 1
+                }else{
+
+                }
+
+
                 return {
                     ...state,
-                    circleState : [...circleState],
+                    longState : [...longState],
+                    longCoord : {...longCoord},
                     isDragging : false
                 }
-            }
-            const longState = [...state.longState]
-            const longCoord = {...state.longCoord}
+            })
+        }
 
-            let n = 0
-            if(longState[index]===1){
-                while(true){
-                    n += 1
-                    if(longState[index+4*n]===2){
-                        break
-                    }
-                }
-                longCoord[index] = n + 1
-            }else if(longState[index]===2){
-                while(true){
-                    n += 1
-                    if(longState[index-4*n]===1){
-                        break
-                    }
-                }
-                longCoord[index-4*n] = n + 1
-            }else{
-
-            }
-
-
-            return {
-                ...state,
-                longState : [...longState],
-                longCoord : {...longCoord},
-                isDragging : false
-            }
-        })
     }
 
 
@@ -300,6 +310,8 @@ const Content = () => {
             setEditState(state=>{
                 const circleState = [...state.circleState]
                 const longState = [...state.longState]
+                let tempIndex;
+
                 if(circleState[state.dragStartIndex]===true){
                     circleState[state.dragStartIndex] = false
                 }
@@ -307,59 +319,73 @@ const Content = () => {
                     circleState[index] = false
                 }
 
-                if(state.dragStartIndex%4===index%4) { //같은 줄 인식
-                    if (state.dragStartIndex > index) {//밑으로
-                        if (longState[state.dragStartIndex + 4] === 2) {
-                            longState[state.dragStartIndex + 4] = 0
-                        }
-                        if (longState[index] === 3) {
-                            longState[index - 4] = 0
-                            longState[index] = 1
-                        } else {
-                            longState[state.dragStartIndex] = 2
-                            longState[index] = 1
-                        }
 
-                    } else if (state.dragStartIndex < index) {//위로
-                        if (longState[state.dragStartIndex - 4] === 1) {
-                            longState[state.dragStartIndex - 4] = 0
-                        }
-                        if (longState[index] === 3) {
-                            longState[index + 4] = 0
-                            longState[index] = 2
-
-                        } else {
-                            longState[state.dragStartIndex] = 1
-                            longState[index] = 2
-                        }
+                if (Math.floor(state.dragStartIndex/4) > Math.floor(index/4)) {//아래에서 위로 드래그
+                    tempIndex = state.dragStartIndex - ((Math.floor(state.dragStartIndex/4) - Math.floor(index/4)) * 4) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                    if(longState[tempIndex]===2){
+                        deleteLong(tempIndex, 1)
 
                     }
-
-
-                    for (let i = 1; i < Math.abs(Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)); i++) {
-                        if (index > state.dragStartIndex) {
-                            longState[state.dragStartIndex + 4 * i] = 3
-                        } else {
-                            longState[state.dragStartIndex - 4 * i] = 3
-                        }
+                    if(longState[state.dragStartIndex]!==2){
+                        longState[state.dragStartIndex] = 2
                     }
+                    if(longState[tempIndex]===1){ //직사각형 추가
+                        longState[state.currentIndex] = 3
+                    }
+                    else if(longState[tempIndex]===3){ // 축소 알고리즘
+                        longState[state.currentIndex] = 0
+                        longState[tempIndex] = 1
+                    }
+
+                    longState[tempIndex] = 1
+                    circleState[tempIndex] = false
+
+                } else if (Math.floor(state.dragStartIndex/4) < Math.floor(index/4)) {//위에서 아래로 드래그
+                    tempIndex = state.dragStartIndex + ((Math.floor(index/4)- Math.floor(state.dragStartIndex/4)) * 4) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                    if(longState[tempIndex]===1){
+                        deleteLong(tempIndex, 2)
+                    }
+                    if(longState[state.dragStartIndex]!==1){
+                        longState[state.dragStartIndex] = 1
+                    }
+                    if(longState[tempIndex]===2){ //직사각형 추가
+                        longState[state.currentIndex] = 3
+                    }
+                    else if(longState[tempIndex]===3){ // 축소 알고리즘
+                        longState[state.currentIndex] = 0
+                        longState[tempIndex] = 2
+                    }
+
+                    longState[tempIndex] = 2
+                    circleState[tempIndex] = false
+
+                }else if(Math.floor(state.dragStartIndex/4) === Math.floor(index/4)){
+                    tempIndex = state.dragStartIndex + (Math.floor(state.dragStartIndex/4) < Math.floor(index/4) ? 1 : -1)*(Math.abs((Math.floor(index/4)- Math.floor(state.dragStartIndex/4)) * 4)) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                    longState[state.currentIndex] = 0 //이전
+                    longState[tempIndex] = 0 //현재
                 }
 
 
-
+                for (let i = 1; i < Math.abs(Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)); i++) {
+                    if (index > state.dragStartIndex) {
+                        longState[state.dragStartIndex + 4 * i] = 3
+                    } else {
+                        longState[state.dragStartIndex - 4 * i] = 3
+                    }
+                }
 
                 return {
                     ...state,
                     circleState : [...circleState],
                     longState : [...longState],
                     longCoord : {...state.longCoord},
-                    currentIndex : index
+                    currentIndex : tempIndex
                 }
             })
         }
 
     }
-    const deleteLong = (index) => {
+    const deleteLong = (index, option) => {
         for(let i=0;i<Object.keys(editState.longCoord).length;i++){
             const longIndex = Object.keys(editState.longCoord)[i] // Key값
             if(index >= Number(longIndex) && index <=Number(longIndex) + (editState.longCoord[longIndex]-1)*4 && index%4 === Number(longIndex)%4){//존재
@@ -370,6 +396,7 @@ const Content = () => {
                     for(let j=0;j<longCoord[longIndex];j++){
                         longState[Number(longIndex)+4*j] = 0
                     }
+                    longState[index] = (option) ? (option===1) ? 1 : 2 : 0
                     delete longCoord[longIndex] //value
                     return {
                         ...state,
@@ -385,23 +412,19 @@ const Content = () => {
 
 
     useEffect(()=>{
-        console.log(editState.circleState)
-    }, [editState.circleState])
-
-
-    useEffect(()=>{
         let isEmpty = [true, true, true, true, true, true]
         for(let i=0;i<24;i++){
             if(editState.circleState[i]===true || editState.longState[i]!==0){
                 isEmpty[Math.floor(i/4)] = false
-                setEditState((state)=>{
-                    return {
-                        ...state,
-                        isEmpty : [...isEmpty]
-                    }
-                })
+
             }
         }
+        setEditState((state)=>{
+            return {
+                ...state,
+                isEmpty : [...isEmpty]
+            }
+        })
     }, [editState.circleState, editState.longState])
 
     return (
@@ -424,7 +447,32 @@ const Content = () => {
                         <CircleWrapper>
                             {
                                 editState.isEmpty.map((i,index)=>{
-                                    return <EmptyCircle key={index} transparant={i===true ? false : true}/>
+                                    return (editState.isXed[index]===false) ? <EmptyCircle key={index} transparant={i===true ? false : true} onClick={()=>{
+                                        setEditState(state=>{
+                                            const isXed = state.isXed
+                                            isXed[index] = true
+                                            return {
+                                                ...state,
+                                                isXed: [...isXed]
+                                            }
+                                        })
+                                    }
+                                    }/> : <CloseOutlined style={{
+                                        fontSize : "44px",
+                                        opacity : i===true ? 1 : 0
+                                    }}
+                                    onClick={() => {
+                                        setEditState(state=>{
+                                            const isXed = state.isXed
+                                            isXed[index] = false
+                                            return {
+                                                ...state,
+                                                isXed: [...isXed]
+                                            }
+                                        })
+                                    }
+                                    }
+                                    />
                                 })
                             }
 
@@ -463,7 +511,12 @@ const Content = () => {
                         {
                             editState.isEmpty.map((i, index)=>{
                                 if(i===true){
-                                    return  <SvgCircle key={index} cx={"5%"} cy={Math.floor((index%6))*14+15+"%"} r={"20px"} stroke="black" strokeWidth="2" fill={"none"}></SvgCircle>
+                                    return  (editState.isXed[index]===false) ? <SvgCircle key={index} cx={"4%"} cy={Math.floor((index%6))*14+15+"%"} r={"20px"} stroke="black" strokeWidth="2" fill={"none"}></SvgCircle> : (
+                                        <>
+                                            <Line x1={"2%"} y1 ={Math.floor(index%6) * 14 + 10.5+"%"} x2={"6%"} y2={Math.floor(index%6) * 14 + 19.5+"%"} stroke={"black"} strokeWidth={"3"}></Line>
+                                            <Line x1={"2%"} y1={Math.floor(index%6) * 14 + 19.5+"%"} x2={"6%"} y2={Math.floor(index%6) * 14 + 10.5+"%"} stroke={"black"} strokeWidth={"3"}></Line>
+                                        </>
+                                    )
                                 }return null
 
                             })
@@ -488,7 +541,7 @@ const Content = () => {
                         {
                             editState.circleState.map((i, index)=>{
                                 if(i===true){
-                                    return <SvgCircle key={index} cx={(index%4)*22.5+12.5+10+"%"} cy={Math.floor((index/4))*14+15+"%"} r={"20px"} color={"black"}></SvgCircle>
+                                    return  <SvgCircle key={index} cx={(index%4)*22.5+12.5+10+"%"} cy={Math.floor((index/4))*14+15+"%"} r={"20px"} color={"black"}></SvgCircle>
                                 }return null
                             })
                         }
