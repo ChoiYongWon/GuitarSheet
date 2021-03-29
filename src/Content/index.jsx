@@ -192,12 +192,6 @@ const EmptyCircle = styled.div`
   ${(props=> props.transparant ? `opacity : 0;` : null)}
 `
 
-const CancelButton = styled.div`
-  
-`
-
-// const TSpan = styled.tspan``
-
 const Content = () => {
 
     const svgRef = createRef()
@@ -243,147 +237,150 @@ const Content = () => {
         })
     }
     const onDragStart = (e, index) => { //드래그 시작지점만 알면됨
-        e.preventDefault()
-        deleteLong(index)
-        setEditState(state=>{
-            return {
-                ...state,
-                dragStartIndex : index,
-                isDragging : true,
-                currentIndex : index
-            }
-        })
-    }
-
-    const onDragEnd = (e, index) => {
-        if(editState.isDragging){
+        if(e.button===0){
+            e.preventDefault()
+            deleteLong(index)
             setEditState(state=>{
-                let tempIndex = state.dragStartIndex + (Math.floor(state.dragStartIndex/4) < Math.floor(index/4) ? 1 : -1)*(Math.abs((Math.floor(index/4)- Math.floor(state.dragStartIndex/4)) * 4)) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
-                if(index===editState.dragStartIndex){
-                    const circleState = [...state.circleState]
-                    circleState[index] = (circleState[index]===true) ? false : true
-                    return {
-                        ...state,
-                        circleState : [...circleState],
-                        isDragging : false
-                    }
-                }
-                const longState = [...state.longState]
-                const longCoord = {...state.longCoord}
-
-                let n = 0
-                if(longState[tempIndex]===1){
-                    while(true){
-                        n += 1
-                        if(longState[tempIndex+4*n]===2){
-                            break
-                        }
-                    }
-                    longCoord[tempIndex] = n + 1
-                }else if(longState[tempIndex]===2){
-                    while(true){
-                        n += 1
-                        if(longState[tempIndex-4*n]===1){
-                            break
-                        }
-                    }
-                    longCoord[tempIndex-4*n] = n + 1
-                }else{
-
-                }
-
-
                 return {
                     ...state,
-                    longState : [...longState],
-                    longCoord : {...longCoord},
-                    isDragging : false
+                    dragStartIndex : index,
+                    isDragging : true,
+                    currentIndex : index
                 }
             })
         }
 
+    }
+
+    const onDragEnd = (e, index) => {
+        if(e.button===0) {
+            if (editState.isDragging) {
+                setEditState(state => {
+                    let tempIndex = state.dragStartIndex + (Math.floor(state.dragStartIndex / 4) < Math.floor(index / 4) ? 1 : -1) * (Math.abs((Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)) * 4)) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                    if (index === editState.dragStartIndex) {
+                        const circleState = [...state.circleState]
+                        circleState[index] = (circleState[index] === true) ? false : true
+                        return {
+                            ...state,
+                            circleState: [...circleState],
+                            isDragging: false
+                        }
+                    }
+                    const longState = [...state.longState]
+                    const longCoord = {...state.longCoord}
+
+                    let n = 0
+                    if (longState[tempIndex] === 1) {
+                        while (true) {
+                            n += 1
+                            if (longState[tempIndex + 4 * n] === 2) {
+                                break
+                            }
+                        }
+                        longCoord[tempIndex] = n + 1
+                    } else if (longState[tempIndex] === 2) {
+                        while (true) {
+                            n += 1
+                            if (longState[tempIndex - 4 * n] === 1) {
+                                break
+                            }
+                        }
+                        longCoord[tempIndex - 4 * n] = n + 1
+                    } else {
+
+                    }
+
+
+                    return {
+                        ...state,
+                        longState: [...longState],
+                        longCoord: {...longCoord},
+                        isDragging: false
+                    }
+                })
+            }
+        }
     }
 
 
     const onDragEnter = (e, index) => { //드래그하는 곳에따라 원 모양 배치
-        if(editState.isDragging){
-            setEditState(state=>{
-                const circleState = [...state.circleState]
-                const longState = [...state.longState]
-                let tempIndex;
+        if(e.button===0) {
+            if (editState.isDragging) {
+                setEditState(state => {
+                    const circleState = [...state.circleState]
+                    const longState = [...state.longState]
+                    let tempIndex;
 
-                if(circleState[state.dragStartIndex]===true){
-                    circleState[state.dragStartIndex] = false
-                }
-                if(circleState[index]===true){
-                    circleState[index] = false
-                }
-
-
-                if (Math.floor(state.dragStartIndex/4) > Math.floor(index/4)) {//아래에서 위로 드래그
-                    tempIndex = state.dragStartIndex - ((Math.floor(state.dragStartIndex/4) - Math.floor(index/4)) * 4) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
-                    if(longState[tempIndex]===2){
-                        deleteLong(tempIndex, 1)
-
+                    if (circleState[state.dragStartIndex] === true) {
+                        circleState[state.dragStartIndex] = false
                     }
-                    if(longState[state.dragStartIndex]!==2){
-                        longState[state.dragStartIndex] = 2
+                    if (circleState[index] === true) {
+                        circleState[index] = false
                     }
-                    if(longState[tempIndex]===1){ //직사각형 추가
-                        longState[state.currentIndex] = 3
-                    }
-                    else if(longState[tempIndex]===3){ // 축소 알고리즘
-                        longState[state.currentIndex] = 0
+
+
+                    if (Math.floor(state.dragStartIndex / 4) > Math.floor(index / 4)) {//아래에서 위로 드래그
+                        tempIndex = state.dragStartIndex - ((Math.floor(state.dragStartIndex / 4) - Math.floor(index / 4)) * 4) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                        if (longState[tempIndex] === 2) {
+                            deleteLong(tempIndex, 1)
+
+                        }
+                        if (longState[state.dragStartIndex] !== 2) {
+                            longState[state.dragStartIndex] = 2
+                        }
+                        if (longState[tempIndex] === 1) { //직사각형 추가
+                            longState[state.currentIndex] = 3
+                        } else if (longState[tempIndex] === 3) { // 축소 알고리즘
+                            longState[state.currentIndex] = 0
+                            longState[tempIndex] = 1
+                        }
+
                         longState[tempIndex] = 1
-                    }
+                        circleState[tempIndex] = false
 
-                    longState[tempIndex] = 1
-                    circleState[tempIndex] = false
+                    } else if (Math.floor(state.dragStartIndex / 4) < Math.floor(index / 4)) {//위에서 아래로 드래그
+                        tempIndex = state.dragStartIndex + ((Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)) * 4) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                        if (longState[tempIndex] === 1) {
+                            deleteLong(tempIndex, 2)
+                        }
+                        if (longState[state.dragStartIndex] !== 1) {
+                            longState[state.dragStartIndex] = 1
+                        }
+                        if (longState[tempIndex] === 2) { //직사각형 추가
+                            longState[state.currentIndex] = 3
+                        } else if (longState[tempIndex] === 3) { // 축소 알고리즘
+                            longState[state.currentIndex] = 0
+                            longState[tempIndex] = 2
+                        }
 
-                } else if (Math.floor(state.dragStartIndex/4) < Math.floor(index/4)) {//위에서 아래로 드래그
-                    tempIndex = state.dragStartIndex + ((Math.floor(index/4)- Math.floor(state.dragStartIndex/4)) * 4) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
-                    if(longState[tempIndex]===1){
-                        deleteLong(tempIndex, 2)
-                    }
-                    if(longState[state.dragStartIndex]!==1){
-                        longState[state.dragStartIndex] = 1
-                    }
-                    if(longState[tempIndex]===2){ //직사각형 추가
-                        longState[state.currentIndex] = 3
-                    }
-                    else if(longState[tempIndex]===3){ // 축소 알고리즘
-                        longState[state.currentIndex] = 0
                         longState[tempIndex] = 2
+                        circleState[tempIndex] = false
+
+                    } else if (Math.floor(state.dragStartIndex / 4) === Math.floor(index / 4)) {
+                        tempIndex = state.dragStartIndex + (Math.floor(state.dragStartIndex / 4) < Math.floor(index / 4) ? 1 : -1) * (Math.abs((Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)) * 4)) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
+                        longState[state.currentIndex] = 0 //이전
+                        longState[tempIndex] = 0 //현재
                     }
 
-                    longState[tempIndex] = 2
-                    circleState[tempIndex] = false
 
-                }else if(Math.floor(state.dragStartIndex/4) === Math.floor(index/4)){
-                    tempIndex = state.dragStartIndex + (Math.floor(state.dragStartIndex/4) < Math.floor(index/4) ? 1 : -1)*(Math.abs((Math.floor(index/4)- Math.floor(state.dragStartIndex/4)) * 4)) //시작 지점으로부터 경로 이탈시 제대로된 index 제공
-                    longState[state.currentIndex] = 0 //이전
-                    longState[tempIndex] = 0 //현재
-                }
-
-
-                for (let i = 1; i < Math.abs(Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)); i++) {
-                    if (index > state.dragStartIndex) {
-                        longState[state.dragStartIndex + 4 * i] = 3
-                    } else {
-                        longState[state.dragStartIndex - 4 * i] = 3
+                    for (let i = 1; i < Math.abs(Math.floor(index / 4) - Math.floor(state.dragStartIndex / 4)); i++) {
+                        if (index > state.dragStartIndex) {
+                            longState[state.dragStartIndex + 4 * i] = 3
+                        } else {
+                            longState[state.dragStartIndex - 4 * i] = 3
+                        }
                     }
-                }
 
-                return {
-                    ...state,
-                    circleState : [...circleState],
-                    longState : [...longState],
-                    longCoord : {...state.longCoord},
-                    currentIndex : tempIndex
-                }
-            })
+                    return {
+                        ...state,
+                        circleState: [...circleState],
+                        longState: [...longState],
+                        longCoord: {...state.longCoord},
+                        currentIndex: tempIndex
+                    }
+                })
+            }
         }
-
     }
     const deleteLong = (index, option) => {
         for(let i=0;i<Object.keys(editState.longCoord).length;i++){
@@ -457,7 +454,7 @@ const Content = () => {
                                             }
                                         })
                                     }
-                                    }/> : <CloseOutlined style={{
+                                    }/> : <CloseOutlined key={index} style={{
                                         fontSize : "44px",
                                         opacity : i===true ? 1 : 0
                                     }}
